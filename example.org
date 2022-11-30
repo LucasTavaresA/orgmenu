@@ -1,0 +1,12 @@
+#+TITLE Example
+#+STARTUP: folded
+
+* [[firefox][Browser]]
+* [[./exemplo.org][Edit list]]
+* Software
+** [[https://gnu.org/][GNU]]
+** Github
+*** [[https://github.com/LucasTavaresA][My github]]
+*** [[https://github.com/LucasTavaresA/dotfiles][Dotfiles]]
+* Cloud
+** [[https://mega.nz/][Mega]]

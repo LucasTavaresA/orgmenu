@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+menu="tofi"
+[ -z "$WAYLAND_DISPLAY" ] && menu="dmenu -a -c -cw 100 -l 20 -h 20"
+
+case "$1" in
+    *.md)
+        texto=$(cat "$1" | grep "^#")
+        links=$(echo "$texto" | sed "s/^.*(//;s/)\$//")
+        headers=$(echo "$texto" | sed "s/\[//;s/\](.*//")
+        marca="#"
+        ;;
+    *.org)
+        texto=$(cat "$1" | grep "^*")
+        links=$(echo "$texto" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
+        headers=$(echo "$texto" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
+        marca="*"
+        ;;
+esac
+
+profundidade="\\$marca"
+escopo="$headers"
+x=0
+while [ "$x" = 0 ]
+do
+    header=$(echo "$escopo" | sed "/^$profundidade /!d" | $menu)
+    header=$(printf '%q' "$header")
+    [ -z "$header" ] && exit
+    numl=$(echo "$headers" | sed -n "/^$header\$/=")
+    link=$(echo "$links" | sed "$numl!d")
+    if echo "$link" | grep "^$marca"; then
+        escopo=$(echo "$escopo" | sed -n "/^$header\$/,/^$profundidade /p")
+        [ -z "$escopo" ] && exit
+        profundidade="$profundidade\\$marca"
+    else
+        x=1
+    fi
+done
+
+[ -x "$(which $link)" ] && eval exec "$(which $link)"
+
+if echo "$link" | grep -m 1 -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*"; then
+    exec $BROWSER "$link"
+fi
+
+eval exec $VISUAL "$1"
