@@ -1,45 +1,46 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+# shellcheck disable=SC2001
 menu="tofi"
 [ -z "$WAYLAND_DISPLAY" ] && menu="dmenu -a -c -cw 100 -l 20 -h 20"
 
 case "$1" in
     *.md)
-        texto=$(cat "$1" | grep "^#")
-        links=$(echo "$texto" | sed "s/^.*(//;s/)\$//")
-        headers=$(echo "$texto" | sed "s/\[//;s/\](.*//")
-        marca="#"
+        text=$(grep "^#" < "$1")
+        links=$(echo "$text" | sed "s/^.*(//;s/)\$//")
+        headers=$(echo "$text" | sed "s/\[//;s/\](.*//")
+        markup="#"
         ;;
     *.org)
-        texto=$(cat "$1" | grep "^*")
-        links=$(echo "$texto" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
-        headers=$(echo "$texto" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
-        marca="*"
+        text=$(grep "^\*" < "$1")
+        links=$(echo "$text" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
+        headers=$(echo "$text" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
+        markup="*"
         ;;
 esac
 
-profundidade="\\$marca"
-escopo="$headers"
-x=0
-while [ "$x" = 0 ]
+depth="\\$markup"
+scope="$headers"
+found=0
+while [ "$found" = 0 ]
 do
-    header=$(echo "$escopo" | sed "/^$profundidade /!d" | $menu)
-    header=$(printf '%q' "$header")
+    header=$(echo "$scope" | sed "/^$depth /!d" | $menu)
+    header=$(echo "$header" | sed 's/*/\\*/g')
     [ -z "$header" ] && exit
-    numl=$(echo "$headers" | sed -n "/^$header\$/=")
-    link=$(echo "$links" | sed "$numl!d")
-    if echo "$link" | grep "^$marca"; then
-        escopo=$(echo "$escopo" | sed -n "/^$header\$/,/^$profundidade /p")
-        [ -z "$escopo" ] && exit
-        profundidade="$profundidade\\$marca"
+    line_num=$(echo "$headers" | sed -n "/^$header\$/=")
+    link=$(echo "$links" | sed "$line_num!d")
+    if echo "$link" | grep "^$markup"; then
+        scope=$(echo "$scope" | sed -n "/^$header\$/,/^$depth /p")
+        [ -z "$scope" ] && exit
+        depth="$depth\\$markup"
     else
-        x=1
+        found=1
     fi
 done
 
-[ -x "$(which $link)" ] && eval exec "$(which $link)"
+[ -x "$(which "$link")" ] && eval exec "$(which "$link")"
 
 if echo "$link" | grep -m 1 -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*"; then
     exec $BROWSER "$link"
 fi
 
-eval exec $VISUAL "$1"
+eval exec "$VISUAL" "$1"
