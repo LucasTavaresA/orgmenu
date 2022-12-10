@@ -1,17 +1,17 @@
 #!/usr/bin/env sh
 # shellcheck disable=SC2001
-menu="tofi"
-[ -z "$WAYLAND_DISPLAY" ] && menu="dmenu -a -c -cw 100 -l 20 -h 20"
+menu="tofi"                               # wayland menu
+[ -z "$WAYLAND_DISPLAY" ] && menu="dmenu" # xorg menu
 
 case "$1" in
     *.md)
-        text=$(grep "^#" < "$1")
+        text=$(grep "^#" <"$1")
         links=$(echo "$text" | sed "s/^.*(//;s/)\$//")
         headers=$(echo "$text" | sed "s/\[//;s/\](.*//")
         markup="#"
         ;;
     *.org)
-        text=$(grep "^\*" < "$1")
+        text=$(grep "^\*" <"$1")
         links=$(echo "$text" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
         headers=$(echo "$text" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
         markup="*"
@@ -21,8 +21,7 @@ esac
 depth="\\$markup"
 scope="$headers"
 found=0
-while [ "$found" = 0 ]
-do
+while [ "$found" = 0 ]; do
     header=$(echo "$scope" | sed "/^$depth /!d" | $menu)
     header=$(echo "$header" | sed 's/*/\\*/g')
     [ -z "$header" ] && exit
