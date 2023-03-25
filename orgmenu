@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # shellcheck disable=SC2001
-menu="tofi"                               # wayland menu
-[ -z "$WAYLAND_DISPLAY" ] && menu="dmenu" # xorg menu
+menu="tofi"                                           # wayland menu
+[ -z "$WAYLAND_DISPLAY" ] && menu="dmenu -b -i -l 15" # xorg menu
 
 case "$1" in
     *.md)
