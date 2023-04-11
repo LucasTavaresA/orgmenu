@@ -4,42 +4,42 @@ menu="tofi"                                           # wayland menu
 [ -z "$WAYLAND_DISPLAY" ] && menu="dmenu -b -i -l 15" # xorg menu
 
 case "$1" in
-    *.md)
-        text=$(grep "^#" <"$1")
-        links=$(echo "$text" | sed "s/^.*(//;s/)\$//")
-        headers=$(echo "$text" | sed "s/\[//;s/\](.*//")
-        markup="#"
-        ;;
-    *.org)
-        text=$(grep "^\*" <"$1")
-        links=$(echo "$text" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
-        headers=$(echo "$text" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
-        markup="*"
-        ;;
+	*.md)
+		text=$(grep "^#" <"$1")
+		links=$(echo "$text" | sed "s/^.*(//;s/)\$//")
+		headers=$(echo "$text" | sed "s/\[//;s/\](.*//")
+		markup="#"
+		;;
+	*.org)
+		text=$(grep "^\*" <"$1")
+		links=$(echo "$text" | sed -e "s/^.*\[\[//" -e "s/\]\[.*\]\]\$//")
+		headers=$(echo "$text" | sed -e "s/\[\[.*\]\[//" -e "s/\]\]\$//")
+		markup="*"
+		;;
 esac
 
 depth="\\$markup"
 scope="$headers"
 found=0
 while [ "$found" = 0 ]; do
-    header=$(echo "$scope" | sed "/^$depth /!d" | $menu)
-    header=$(echo "$header" | sed 's/*/\\*/g')
-    [ -z "$header" ] && exit
-    line_num=$(echo "$headers" | sed -n "/^$header\$/=")
-    link=$(echo "$links" | sed "$line_num!d")
-    if echo "$link" | grep "^$markup"; then
-        scope=$(echo "$scope" | sed -n "/^$header\$/,/^$depth /p")
-        [ -z "$scope" ] && exit
-        depth="$depth\\$markup"
-    else
-        found=1
-    fi
+	header=$(echo "$scope" | sed "/^$depth /!d" | $menu)
+	header=$(echo "$header" | sed 's/*/\\*/g')
+	[ -z "$header" ] && exit
+	line_num=$(echo "$headers" | sed -n "/^$header\$/=")
+	link=$(echo "$links" | sed "$line_num!d")
+	if echo "$link" | grep "^$markup"; then
+		scope=$(echo "$scope" | sed -n "/^$header\$/,/^$depth /p")
+		[ -z "$scope" ] && exit
+		depth="$depth\\$markup"
+	else
+		found=1
+	fi
 done
 
 [ -x "$(which "$link")" ] && eval exec "$(which "$link")"
 
 if echo "$link" | grep -m 1 -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*"; then
-    exec $BROWSER "$link"
+	exec $BROWSER --new-tab "$link"
 fi
 
 eval exec "$VISUAL" "$1"
